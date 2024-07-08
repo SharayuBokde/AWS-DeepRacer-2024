@@ -21,132 +21,60 @@ def check_direction(waypoints,closest_waypoints,heading,reward):
 
     return reward
 
-def dist(pt1, pt2):
-    return ((pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2) ** 0.5
+def angle_between_points(first_point, x, third_point):
+    """Calculates the angle between two line segments formed by three points."""
+    first_dx = first_point[0] - x
+    first_dy = first_point[1] - 0
+    third_dx = third_point[0] - x
+    third_dy = third_point[1] - 0
+    angle = math.atan2(third_dy, third_dx) - math.atan2(first_dy, first_dx)
+    return math.degrees(angle)
 
 
-def rect(r, theta):
-    x = r * math.cos(math.radians(theta))
-    y = r * math.sin(math.radians(theta))
-    return x, y
+def find_next_three_waypoints(params):
+    waypoints = params['waypoints']
+    next_points = (list(range(params['closest_waypoint'][1], params['closest_waypoint'][1] + 3)))
+    for i in range(len(next_points)):
+        if next_points[i] > len(waypoints):
+            next_points[i] -= len(waypoints)
+    print()
+    return next_points
 
-
-def polar(x, y):
-    r = (x ** 2 + y ** 2) ** .5
-    theta = math.degrees(math.atan2(y,x))
-    return r, theta
-
-
-def angle_mod_360(angle):
-    n = math.floor(angle/360.0)
-    angle_between_0_and_360 = angle - n*360.0
-
-    if angle_between_0_and_360 <= 180.0:
-        return angle_between_0_and_360
-    else:
-        return angle_between_0_and_360 - 360
-
-
-def get_waypts_ordered_in_driving_direction(params):
-    if params['is_reversed']: 
-        return list(reversed(params['waypoints']))
-    else: 
-        return params['waypoints']
-
-
-def up_sample(waypts, factor):
-    p = waypts
-    n = len(p)
-    return [[i / factor * p[(j+1) % n][0] + (1 - i / factor) * p[j][0],
-             i / factor * p[(j+1) % n][1] + (1 - i / factor) * p[j][1]] for j in range(n) for i in range(factor)]
-
-
-def get_target_pt(params):
-    waypts = up_sample(get_waypts_ordered_in_driving_direction(params), 20)
-    car = [params['x'], params['y']]
-    distances = [dist(p, car) for p in waypts]
-    min_dist = min(distances)
-    i_closest = distances.index(min_dist)
-    n = len(waypts)
-    waypts_starting_with_closest = [waypts[(i+i_closest) % n] for i in range(n)]
-    r = params['track_width'] * 0.7
-    is_inside = [dist(p, car) < r for p in waypts_starting_with_closest]
-    i_first_outside = is_inside.index(False)
-    if i_first_outside < 0:  
-        return waypts[i_closest]
-
-    return waypts_starting_with_closest[i_first_outside]
-
-
-def get_target_steering_degree(params):
-    tx, ty = get_target_pt(params)
-    car_x = params['x']
-    car_y = params['y']
-    dx = tx-car_x
-    dy = ty-car_y
-    heading = params['heading']
-    _, target_angle = polar(dx, dy)
-    steering_angle = target_angle - heading
-    return angle_mod_360(steering_angle)
-
-
-def score_steer_to_pt_ahead(params):
-    best_stearing_angle = get_target_steering_degree(params)
+def calculate_optimal_angle(params,best_stearing_angle):
     steering_angle = params['steering_angle']
-    error = (steering_angle - best_stearing_angle) / 50.0  
+    error = abs((abs(steering_angle) - abs(best_stearing_angle))) / 60.0  
     score = 1.0 - abs(error)
     return max(score, 0.01) 
 
 
 def reward_function(params):
     # steering
-    reward = 2*score_steer_to_pt_ahead(params)
-    
-    # # speed
-    # speed = params['speed']
-    # if(speed>=2.5):
-    #     reward+=1
-    # elif(speed>1.5):
-    #     reward+=0.5
-    # else:
-    #     reward+=0.2
-
-    # # steps
-    # steps = params['steps']
-    # progress = params['progress']
-    # if (steps % 100) == 0 and progress < (steps / 4):
-    #     reward -= 0.5
-        
-    # distance from center
-    distance_from_center = params['distance_from_center']
-    track_width = params['track_width']
-    marker_1 = 0.1 * track_width
-    marker_2 = 0.25 * track_width
-    marker_3 = 0.5 * track_width
-    if distance_from_center <= marker_1:
-        reward += 1.0
-    elif distance_from_center <= marker_2:
-        reward += 0.8
-    elif distance_from_center <= marker_3:
-        reward += 0.1
-    else:
-        reward += 0
-        
-
-    # all wheels on track
-    all_wheels_on_track = params['all_wheels_on_track']
-    if not all_wheels_on_track:
-        reward = 0
-    else:
-        reward += 1.0
-        
-    # reading all inputs
-    heading = params['heading']
-    track_width = params['track_width']
     waypoints = params['waypoints']
-    closest_waypoints = params['closest_waypoints']
+    # Get current position
+    x = params['x']
+    y = params['y']
+
+    next_points = find_next_three_waypoints(params)
     
-    reward = check_direction(waypoints,closest_waypoints,heading,reward)
+    first_point = waypoints[next_points[0]]
+    third_point = waypoints[next_points[2]]
+    curvature = angle_between_points(first_point, x, third_point)
+
+    # Optimal speed based on curvature
+    min_speed, max_speed = 0.5, 3.5
+    # Changed to continuous function for optimal speed calculation
+    optimal_speed = max_speed - (curvature / 180) * (max_speed - min_speed)
+
+    # Calculate reward for speed
+    speed_diff = abs(params['speed'] - optimal_speed)
+    reward = math.exp(-0.5 * speed_diff)
+    
+    # closest_waypoints = params['closest_waypoints']
+    # heading = params['heading']
+    
+    # reward += calculate_optimal_angle(params,curvature)
+
+    # reward = check_direction(waypoints,closest_waypoints,heading,reward)
 
         
     return float(reward)
