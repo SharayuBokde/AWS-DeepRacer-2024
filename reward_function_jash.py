@@ -41,13 +41,51 @@ def find_next_three_waypoints(params):
 
 def calculate_optimal_angle(params,best_stearing_angle):
     steering_angle = params['steering_angle']
-    error = abs((abs(steering_angle) - abs(best_stearing_angle))) / 60.0  
+    error = abs((abs(steering_angle) - abs(best_stearing_angle))) / 47.0 
     score = 1.0 - abs(error)
     return max(score, 0.01) 
 
 
 def reward_function(params):
     # steering
+    track_width = params['track_width']
+    distance_from_center = params['distance_from_center']
+    all_wheels_on_track = params['all_wheels_on_track']
+    progress = params['progress']
+    speed = params['speed']
+    steering_angle = abs(params['steering_angle'])  # Only need the absolute value of the steering angle
+
+    # Initialize the reward with a small number but not zero
+    reward = 1e-3
+    
+    # Penalize if the car goes off track
+    if not all_wheels_on_track:
+        return reward  # Reward will be 1e-3 if the car is off track
+    else:
+        reward += 5.0
+
+    # Reward car for staying close to the center line
+    marker_1 = 0.1 * track_width
+    marker_2 = 0.25 * track_width
+    marker_3 = 0.5 * track_width
+    
+    if distance_from_center <= marker_1:
+        reward += 2.5
+    elif distance_from_center <= marker_2:
+        reward += 1.5
+    elif distance_from_center <= marker_3:
+        reward += 0.1
+    else:
+        reward += 1e-3  # likely crashed/close to off track
+
+    # Reward for higher progress
+    if progress == 100:
+        reward += 10.0  # bonus for completing the lap
+    
+    # Reward for maintaining an appropriate speed
+    SPEED_THRESHOLD = 1.5
+    if speed > SPEED_THRESHOLD:
+        reward += 1.5
     waypoints = params['waypoints']
     # Get current position
     x = params['x']
@@ -60,13 +98,13 @@ def reward_function(params):
     curvature = angle_between_points(first_point, x, third_point)
 
     # Optimal speed based on curvature
-    min_speed, max_speed = 0.5, 3.5
+    min_speed, max_speed = 1, 4
     # Changed to continuous function for optimal speed calculation
     optimal_speed = max_speed - (curvature / 180) * (max_speed - min_speed)
 
     # Calculate reward for speed
     speed_diff = abs(params['speed'] - optimal_speed)
-    reward = math.exp(-0.5 * speed_diff)
+    reward += 5*math.exp(-0.5 * speed_diff)
     
     # closest_waypoints = params['closest_waypoints']
     # heading = params['heading']
