@@ -41,7 +41,7 @@ def find_next_three_waypoints(params):
 
 def calculate_optimal_angle(params,best_stearing_angle):
     steering_angle = params['steering_angle']
-    error = abs((abs(steering_angle) - abs(best_stearing_angle))) / 47.0 
+    error = abs((abs(steering_angle) - abs(best_stearing_angle))) / 50.0 
     score = 1.0 - abs(error)
     return max(score, 0.01) 
 
