@@ -78,6 +78,11 @@ def reward_function(params):
     else:
         reward += 1e-3  # likely crashed/close to off track
 
+    # Off track penalty
+    is_offtrack = params['is_offtrack']
+    if is_offtrack:
+        reward = reward*0.5
+        
     # Reward for higher progress
     if progress == 100:
         reward += 10.0  # bonus for completing the lap
