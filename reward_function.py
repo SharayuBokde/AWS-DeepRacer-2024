@@ -56,7 +56,12 @@ def reward_function(params):
     # Reward for higher progress
     if progress == 100:
         reward += 10.0  # bonus for completing the lap
-    
+
+    # Off track penalty
+    is_offtrack = params['is_offtrack']
+    if is_offtrack:
+        reward = reward*0.5
+        
     # Reward for maintaining an appropriate speed
     SPEED_THRESHOLD = 2.0
     if speed > SPEED_THRESHOLD:
