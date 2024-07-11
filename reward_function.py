@@ -75,7 +75,7 @@ def reward_function(params):
         reward *= 0.7
         
     # Determine if the car is approaching a steep curve
-    HEADING_THRESHOLD = 15  # Define a threshold for what constitutes a steep curve
+    HEADING_THRESHOLD = 18  # Define a threshold for what constitutes a steep curve
     heading_change = calculate_heading_change(waypoints, closest_waypoints, heading)
     is_steep_curve = heading_change > HEADING_THRESHOLD
 
@@ -89,11 +89,11 @@ def reward_function(params):
             reward -= 1.0  # Higher penalty for going too fast and away from centre
 
         # Encourage smooth steering through the curve
-        STEERING_THRESHOLD = 15
+        STEERING_THRESHOLD = 18
         if steering_angle < STEERING_THRESHOLD:
             reward += 2.0  # Higher reward for smooth steering
         else:
-            reward -= 1.0  # Higher penalty for going too fast and away from centre
+            reward -= 2.0  # Higher penalty for going too fast and away from centre
                 
         # Encourage optimal path through the curve
         if distance_from_center < marker_2:
@@ -102,6 +102,8 @@ def reward_function(params):
         # General speed incentive on non-steep sections
         SPEED_THRESHOLD = 2.75
         if speed >= SPEED_THRESHOLD:
-            reward += 1.5  # reward for maintaining high speed
+            reward += 2.0  # reward for maintaining high speed
+        else:
+            reward += 1.0
             
     return float(reward)
