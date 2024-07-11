@@ -60,7 +60,9 @@ def reward_function(params):
     # Off track penalty
     is_offtrack = params['is_offtrack']
     if is_offtrack:
-        reward = reward*0.5
+        reward *= 0.2
+    else:
+        reward *= 1.5
         
     # Reward for maintaining an appropriate speed
     SPEED_THRESHOLD = 2.0
