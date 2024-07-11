@@ -29,11 +29,14 @@ def reward_function(params):
     waypoints = params['waypoints']
     closest_waypoints = params['closest_waypoints']
     heading = params['heading']
+    is_offtrack = params['is_offtrack']
 
     # Initialize the reward with a small number but not zero
     reward = 1e-3
     
     # Penalize if the car goes off track
+    if is_offtrack:
+        return reward
     if not all_wheels_on_track:
         return reward  # Reward will be 1e-3 if the car is off track
     else:
@@ -56,40 +59,23 @@ def reward_function(params):
     # Reward for higher progress
     if progress == 100:
         reward += 10.0  # bonus for completing the lap
-
-    # Off track penalty
-    is_offtrack = params['is_offtrack']
-    if is_offtrack:
-        reward *= 0.2
-    else:
-        reward *= 1.5
-        
-    # Reward for maintaining an appropriate speed
-    SPEED_THRESHOLD = 2.0
-    if speed > SPEED_THRESHOLD:
-        reward += 1.5  # higher reward for driving faster
-
-    # Penalize for steering too much to avoid zig-zagging
-    ABS_STEERING_THRESHOLD = 10
-    if steering_angle > ABS_STEERING_THRESHOLD:
-        reward *= 0.7
-        
+                
     # Determine if the car is approaching a steep curve
-    HEADING_THRESHOLD = 18  # Define a threshold for what constitutes a steep curve
+    HEADING_THRESHOLD = 15  # Define a threshold for what constitutes a steep curve
     heading_change = calculate_heading_change(waypoints, closest_waypoints, heading)
     is_steep_curve = heading_change > HEADING_THRESHOLD
 
     # Adjust rewards based on the curve
     if is_steep_curve:
         # Reduce speed and reward accordingly
-        SPEED_THRESHOLD = 2.5
+        SPEED_THRESHOLD = 2.0
         if speed < SPEED_THRESHOLD:
             reward += 2.0  # Higher reward for reducing speed at steep curve
         else:
             reward -= 1.0  # Higher penalty for going too fast and away from centre
 
         # Encourage smooth steering through the curve
-        STEERING_THRESHOLD = 18
+        STEERING_THRESHOLD = 15
         if steering_angle < STEERING_THRESHOLD:
             reward += 2.0  # Higher reward for smooth steering
         else:
@@ -103,7 +89,10 @@ def reward_function(params):
         SPEED_THRESHOLD = 2.75
         if speed >= SPEED_THRESHOLD:
             reward += 2.0  # reward for maintaining high speed
-        else:
-            reward += 1.0
-            
+
+        # Penalize for steering too much to avoid zig-zagging
+        ABS_STEERING_THRESHOLD = 10
+        if steering_angle > ABS_STEERING_THRESHOLD:
+            reward *= 0.7
+
     return float(reward)
