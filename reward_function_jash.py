@@ -33,7 +33,7 @@ def angle_between_points(first_point, x, third_point):
 
 def find_next_three_waypoints(params):
     waypoints = params['waypoints']
-    next_points = (list(range(params['closest_waypoint'][1], params['closest_waypoint'][1] + 3)))
+    next_points = (list(range(params['closest_waypoints'][1], params['closest_waypoints'][1] + 3)))
     for i in range(len(next_points)):
         if next_points[i] > len(waypoints):
             next_points[i] -= len(waypoints)
