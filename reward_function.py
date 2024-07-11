@@ -82,7 +82,7 @@ def reward_function(params):
     # Adjust rewards based on the curve
     if is_steep_curve:
         # Reduce speed and reward accordingly
-        SPEED_THRESHOLD = 2.0
+        SPEED_THRESHOLD = 2.5
         if speed < SPEED_THRESHOLD:
             reward += 2.0  # Higher reward for reducing speed at steep curve
         else:
@@ -100,8 +100,8 @@ def reward_function(params):
             reward += 2.0  # Bonus for maintaining optimal trajectory
     else:
         # General speed incentive on non-steep sections
-        SPEED_THRESHOLD = 2.0
+        SPEED_THRESHOLD = 2.75
         if speed >= SPEED_THRESHOLD:
-            reward += 0.5  # reward for maintaining high speed
+            reward += 1.5  # reward for maintaining high speed
             
     return float(reward)
