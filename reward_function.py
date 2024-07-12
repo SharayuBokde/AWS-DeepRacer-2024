@@ -40,7 +40,7 @@ def reward_function(params):
     if not all_wheels_on_track:
         return reward  # Reward will be 1e-3 if the car is off track
     else:
-        reward += 5
+        reward += 10
     
     # Reward car for staying close to the center line
     marker_1 = 0.1 * track_width
@@ -93,6 +93,6 @@ def reward_function(params):
         # Penalize for steering too much to avoid zig-zagging
         ABS_STEERING_THRESHOLD = 10
         if steering_angle > ABS_STEERING_THRESHOLD:
-            reward *= 0.7
+            reward *= 0.6
 
     return float(reward)
