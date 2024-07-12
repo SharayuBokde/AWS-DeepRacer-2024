@@ -48,7 +48,7 @@ def reward_function(params):
     marker_3 = 0.5 * track_width
     
     if distance_from_center <= marker_1:
-        reward += 2.0
+        reward += 5.0
     elif distance_from_center <= marker_2:
         reward += 1.0
     elif distance_from_center <= marker_3:
@@ -91,7 +91,7 @@ def reward_function(params):
             reward += 2.0  # reward for maintaining high speed
 
         # Penalize for steering too much to avoid zig-zagging
-        ABS_STEERING_THRESHOLD = 10
+        ABS_STEERING_THRESHOLD = 7
         if steering_angle > ABS_STEERING_THRESHOLD:
             reward *= 0.6
 
