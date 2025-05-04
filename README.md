@@ -1,7 +1,5 @@
 # AWS-DeepRacer-2024
 
-# AWS DeepRacer Project
-
 ![AWS DeepRacer](https://d1.awsstatic.com/DeepRacer/AWS-DeepRacer-EventsPage.707d7d062f13db31dbf1aa0f05328d73ca83b6f4.png)
 
 This repository contains code, configuration, and training logs for AWS DeepRacer competition held at JPMorgan Chase & Co. Mumbai Tech Centre. 
